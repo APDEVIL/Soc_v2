@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { UserAvatar } from "./user-avatar";
+import { UserAvatar } from "@/components/shared-primitives/user-avatar";
 import { cn, formatCount } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";

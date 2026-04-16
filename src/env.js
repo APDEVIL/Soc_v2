@@ -11,6 +11,7 @@ export const env = createEnv({
             process.env.NODE_ENV === "production"
                 ? z.string()
                 : z.string().optional(),
+        BETTER_AUTH_URL: z.string().url(),
         BETTER_AUTH_GITHUB_CLIENT_ID: z.string(),
         BETTER_AUTH_GITHUB_CLIENT_SECRET: z.string(),
         DATABASE_URL: z.string().url(),
@@ -27,6 +28,7 @@ export const env = createEnv({
         // UploadThing
         UPLOADTHING_SECRET: z.string(),
         UPLOADTHING_APP_ID: z.string(),
+        UPLOADTHING_TOKEN: z.string(), // Added
     },
 
     /**
@@ -44,6 +46,7 @@ export const env = createEnv({
      */
     runtimeEnv: {
         BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+        BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
         BETTER_AUTH_GITHUB_CLIENT_ID: process.env.BETTER_AUTH_GITHUB_CLIENT_ID,
         BETTER_AUTH_GITHUB_CLIENT_SECRET: process.env.BETTER_AUTH_GITHUB_CLIENT_SECRET,
         DATABASE_URL: process.env.DATABASE_URL,
@@ -58,6 +61,7 @@ export const env = createEnv({
         // UploadThing
         UPLOADTHING_SECRET: process.env.UPLOADTHING_SECRET,
         UPLOADTHING_APP_ID: process.env.UPLOADTHING_APP_ID,
+        UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN, // Added
     },
     /**
      * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

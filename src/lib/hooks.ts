@@ -94,7 +94,7 @@ export function useIntersectionObserver(
 // ─── useClickOutside ─────────────────────────────────────────────────────────
 export function useClickOutside<T extends HTMLElement>(
   callback: () => void
-): React.RefObject<T> {
+): React.RefObject<T | null> {
   const ref = useRef<T>(null);
 
   useEffect(() => {

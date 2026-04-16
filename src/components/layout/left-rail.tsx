@@ -142,7 +142,7 @@ export function LeftRail() {
               mediaUrl: s.mediaUrl,
               mediaType: s.type,
               createdAt: s.createdAt,
-              viewCount: s.views.length,
+              viewCount: s.viewCount,
               user: {
                 id: group.author.id,
                 name: group.author.name,

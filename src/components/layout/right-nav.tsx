@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { authClient } from "@/server/better-auth/client";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PostCreate } from "@/components/posts/post-create";
 
 // ─── Nav items ────────────────────────────────────────────────────────────────
@@ -90,6 +90,13 @@ export function RightNav() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [showCreate, setShowCreate] = useState(false);
+  
+  // Hydration fix for theme toggle
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { data: me } = api.user.me.useQuery();
   const { data: notifCount } = api.notification.getUnreadCount.useQuery(
@@ -158,7 +165,14 @@ export function RightNav() {
                   onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                   className="flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
                 >
-                  {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                  {/* Provide a blank icon until the component is mounted on the client */}
+                  {!mounted ? (
+                    <div className="h-5 w-5" />
+                  ) : theme === "dark" ? (
+                    <Sun className="h-5 w-5" />
+                  ) : (
+                    <Moon className="h-5 w-5" />
+                  )}
                 </button>
               </TooltipTrigger>
               <TooltipContent side="left">Toggle theme</TooltipContent>

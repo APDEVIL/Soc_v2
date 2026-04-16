@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { auth } from "@/server/better-auth/server";
+import { getSession } from "@/server/better-auth/server";
 import { LeftRail } from "@/components/layout/left-rail";
 import { RightNav } from "@/components/layout/right-nav";
 import { MobileNav } from "@/components/layout/mobile-nav";
@@ -11,7 +11,9 @@ export default async function MainLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  // Use your cached getSession wrapper instead of auth.api
+  const session = await getSession();
+  
   if (!session) redirect("/login");
 
   return (

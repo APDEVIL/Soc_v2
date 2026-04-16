@@ -5,3 +5,5 @@ import { auth } from ".";
 export const getSession = cache(async () =>
 	auth.api.getSession({ headers: await headers() }),
 );
+
+export { auth };

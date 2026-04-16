@@ -2,7 +2,7 @@ import { z } from "zod";
 import { and, eq, gt, inArray, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { stories, storyViews, follows, notifications } from "@/server/db/schema";
+import { stories, storyViews, follows, notifications, users } from "@/server/db/schema";
 
 export const storyRouter = createTRPCRouter({
 
@@ -16,6 +16,7 @@ export const storyRouter = createTRPCRouter({
     const authorIds = [ctx.session.user.id, ...myFollowing.map((f) => f.id)];
     const now = new Date();
 
+    // 1. Fetch stories WITHOUT the relational `views` shortcut
     const allStories = await ctx.db.query.stories.findMany({
       where: and(
         inArray(stories.authorId, authorIds),
@@ -24,14 +25,23 @@ export const storyRouter = createTRPCRouter({
       orderBy: (s, { desc }) => [desc(s.createdAt)],
       with: {
         author: { columns: { id: true, username: true, name: true, avatarUrl: true } },
-        views: {
-          where: eq(storyViews.userId, ctx.session.user.id),
-          columns: { id: true },
-        },
       },
     });
 
-    // Group by author
+    // 2. Fetch the views manually for these stories to respect the frozen schema
+    const storyIds = allStories.map(s => s.id);
+    const myViews = storyIds.length > 0 
+      ? await ctx.db.select({ storyId: storyViews.storyId })
+          .from(storyViews)
+          .where(and(
+             inArray(storyViews.storyId, storyIds),
+             eq(storyViews.userId, ctx.session.user.id)
+          ))
+      : [];
+      
+    const viewedStoryIds = new Set(myViews.map(v => v.storyId));
+
+    // 3. Group by author
     const grouped = new Map<string, typeof allStories>();
     for (const story of allStories) {
       const key = story.authorId;
@@ -41,8 +51,9 @@ export const storyRouter = createTRPCRouter({
 
     return Array.from(grouped.entries()).map(([authorId, userStories]) => ({
       author: userStories[0]!.author,
-      stories: userStories.map((s) => ({ ...s, isViewed: s.views.length > 0 })),
-      hasUnviewed: userStories.some((s) => s.views.length === 0),
+      // Map the views using our manual Set instead
+      stories: userStories.map((s) => ({ ...s, isViewed: viewedStoryIds.has(s.id) })),
+      hasUnviewed: userStories.some((s) => !viewedStoryIds.has(s.id)),
     }));
   }),
 
@@ -138,14 +149,22 @@ export const storyRouter = createTRPCRouter({
       if (story.authorId !== ctx.session.user.id)
         throw new TRPCError({ code: "FORBIDDEN" });
 
-      const views = await ctx.db.query.storyViews.findMany({
-        where: eq(storyViews.storyId, input.storyId),
-        orderBy: (v, { desc }) => [desc(v.createdAt)],
-        with: {
-          user: { columns: { id: true, username: true, name: true, avatarUrl: true } },
-        },
+      // Use standard Drizzle join to fetch the users safely
+      const viewers = await ctx.db.select()
+        .from(storyViews)
+        .where(eq(storyViews.storyId, input.storyId))
+        .orderBy(storyViews.createdAt) // Older desc workaround
+        
+      // We map out the users manually
+      if (!viewers.length) return [];
+      
+      const userIds = viewers.map(v => v.userId);
+      const fetchedUsers = await ctx.db.query.users.findMany({
+          where: (users, { inArray }) => inArray(users.id, userIds),
+          columns: { id: true, username: true, name: true, avatarUrl: true }
       });
-
-      return views.map((v) => v.user);
+      
+      // Keep sort order
+      return viewers.map(v => fetchedUsers.find(u => u.id === v.userId)).filter(Boolean);
     }),
 });

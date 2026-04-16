@@ -27,7 +27,7 @@ export const postRouter = createTRPCRouter({
 
   // Home feed: posts from people you follow
   getFeed: protectedProcedure
-    .input(z.object({ cursor: z.string().optional(), limit: z.number().max(20).default(10) }))
+    .input(z.object({ cursor: z.string().optional(), limit: z.number().max(50).default(10) }))
     .query(async ({ ctx, input }) => {
       const myFollowing = await ctx.db
         .select({ id: follows.followingId })

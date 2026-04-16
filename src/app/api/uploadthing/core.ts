@@ -18,8 +18,11 @@ export const ourFileRouter = {
       return { uploadedBy: metadata.userId, url: file.url };
     }),
 
-  // Post images — up to 10 images, max 8MB each
-  postImage: f({ image: { maxFileSize: "8MB", maxFileCount: 10 } })
+  // Post media — up to 10 images and/or videos
+  postImage: f({ 
+    image: { maxFileSize: "8MB", maxFileCount: 10 },
+    video: { maxFileSize: "64MB", maxFileCount: 10 } 
+  })
     .middleware(async () => auth())
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("Post image uploaded by:", metadata.userId, "→", file.url);

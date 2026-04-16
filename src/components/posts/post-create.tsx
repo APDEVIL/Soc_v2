@@ -45,6 +45,9 @@ export function PostCreate({ onClose, groupId }: PostCreateProps) {
     onSuccess: () => {
       toast.success("Post shared!");
       void utils.post.getFeed.invalidate();
+      void utils.post.getUserPosts.invalidate();
+      void utils.user.getProfile.invalidate();
+      void utils.post.getExploreFeed.invalidate();
       onClose();
     },
     onError: () => toast.error("Failed to share post"),
@@ -53,9 +56,11 @@ export function PostCreate({ onClose, groupId }: PostCreateProps) {
   // ─── File selection ────────────────────────────────────────────────────────
   async function handleFileSelect(selectedFiles: FileList | null) {
     if (!selectedFiles?.length) return;
+    
+    // We get a standard array of files
     const fileArray = Array.from(selectedFiles).slice(0, 10);
 
-    // Validate
+    // Validate type
     const invalid = fileArray.find(
       (f) => !f.type.startsWith("image/") && !f.type.startsWith("video/"),
     );
@@ -66,13 +71,17 @@ export function PostCreate({ onClose, groupId }: PostCreateProps) {
 
     setIsUploading(true);
     try {
-      const imageFiles = fileArray.filter((f) => f.type.startsWith("image/"));
-      const result = await startUpload(imageFiles);
+      // 🚨 CRITICAL FIX: Pass the raw fileArray to startUpload!
+      // DO NOT filter it down to just images, otherwise videos get stripped
+      // and UploadThing crashes with an empty array.
+      const result = await startUpload(fileArray);
+      
       if (!result) throw new Error("Upload failed");
 
       const uploaded: UploadedFile[] = result.map((r, i) => ({
         url: r.url,
-        type: "image",
+        // Check what the actual file was so we render the correct preview icon
+        type: fileArray[i]?.type.startsWith("video/") ? "video" : "image",
         preview: r.url,
         name: fileArray[i]?.name ?? `file-${i}`,
         order: files.length + i,
@@ -155,7 +164,7 @@ export function PostCreate({ onClose, groupId }: PostCreateProps) {
               isDragging && "bg-brand/5",
             )}
             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-            onDragLeave={() => setIsDragging(false)}
+            onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
             onDrop={handleDrop}
           >
             {isUploading ? (
@@ -204,12 +213,19 @@ export function PostCreate({ onClose, groupId }: PostCreateProps) {
             <div className="flex gap-2 overflow-x-auto p-3 border-b border-border bg-muted/30">
               {files.map((f, i) => (
                 <div key={i} className="relative shrink-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={f.preview}
-                    alt=""
-                    className="h-20 w-20 rounded-xl object-cover border border-border"
-                  />
+                  {f.type === "video" ? (
+                     <video
+                       src={f.preview}
+                       className="h-20 w-20 rounded-xl object-cover border border-border"
+                     />
+                  ) : (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={f.preview}
+                      alt=""
+                      className="h-20 w-20 rounded-xl object-cover border border-border"
+                    />
+                  )}
                   <button
                     onClick={() => removeFile(i)}
                     className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-background"
@@ -217,8 +233,8 @@ export function PostCreate({ onClose, groupId }: PostCreateProps) {
                     <X className="h-3 w-3" />
                   </button>
                   {f.type === "video" && (
-                    <span className="absolute bottom-1 left-1">
-                      <Film className="h-3.5 w-3.5 text-white drop-shadow" />
+                    <span className="absolute bottom-1 left-1 bg-black/50 p-1 rounded-full">
+                      <Film className="h-3.5 w-3.5 text-white" />
                     </span>
                   )}
                 </div>

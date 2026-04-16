@@ -141,8 +141,10 @@ export function AuthForm({ defaultMode = "login" }: AuthFormProps) {
           email,
           password,
           name,
-          // Pass username in the additional fields
-          // better-auth allows extra fields via `additionalFields`
+          // @ts-expect-error - username is a custom field in our schema
+          // but better-auth types might not reflect it globally in the client
+          // without additional configuration
+          username,
           callbackURL: "/feed",
         });
         if (error) throw new Error(error.message ?? "Registration failed");

@@ -46,10 +46,10 @@ export function StoryRing({
     >
       <UserAvatar
         src={user.image}
-        name={user.name}
+        username={user.username}
         size={s.avatar}
         hasStory={hasStory}
-        storyViewed={viewed}
+        showStoryRing={hasStory && !viewed}
       />
       {showName && (
         <span
