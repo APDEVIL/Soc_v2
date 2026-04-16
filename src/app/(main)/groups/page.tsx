@@ -1,6 +1,3 @@
-// =========================================================
-// src/app/(main)/groups/page.tsx
-// =========================================================
 "use client";
 
 import { useState } from "react";
@@ -13,10 +10,10 @@ import { api } from "@/trpc/react";
 
 export default function GroupsPage() {
   const [query, setQuery] = useState("");
-  const { data, isLoading } = api.group.getGroup.useQuery(
-    { groupId: "discover" },
-    { retry: false }
-  );
+  
+  // ✅ THE FIX: Changed getGroup to getMyGroups (fetching a list, not a single ID)
+  const { data: myGroups, isLoading } = api.group.getMyGroups.useQuery();
+  
   // Use getFeed as a proxy for discovery — adapt to your actual discover endpoint
   const { data: feed } = api.post.getFeed.useQuery({ limit: 5 });
 
@@ -56,7 +53,7 @@ export default function GroupsPage() {
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp className="w-4 h-4 text-[hsl(43,96%,56%)]" />
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Discover Groups
+          Your Groups & Discover
         </p>
       </div>
 
@@ -68,10 +65,25 @@ export default function GroupsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Replace with actual group discovery data */}
-          <p className="col-span-2 text-sm text-muted-foreground text-center py-12">
-            No groups to show yet. Create one!
-          </p>
+          {/* ✅ If you have groups, map over them here. Otherwise show the empty state. */}
+          {myGroups && myGroups.length > 0 ? (
+            myGroups.map((group) => (
+              <GroupCard
+                key={group.id}
+                id={group.id}
+                name={group.name}
+                avatarUrl={group.avatarUrl}
+                memberCount={group.memberCount}
+                isPrivate={group.isPrivate}
+                isMember={true}
+                className="h-full"
+              />
+            ))
+          ) : (
+            <p className="col-span-2 text-sm text-muted-foreground text-center py-12">
+              No groups to show yet. Create one!
+            </p>
+          )}
         </div>
       )}
     </div>

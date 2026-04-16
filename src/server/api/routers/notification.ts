@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, count } from "drizzle-orm"; // <-- Added count here
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { notifications } from "@/server/db/schema";
 
@@ -32,16 +32,18 @@ export const notificationRouter = createTRPCRouter({
     }),
 
   // Get unread count (for badge)
-  getUnreadCount: protectedProcedure.query(async ({ ctx }) => {
-    const [row] = await ctx.db
-      .select({ count: sql<number>`count(*)` })
-      .from(notifications)
-      .where(and(
-        eq(notifications.recipientId, ctx.session.user.id),
-        eq(notifications.isRead, false),
-      ));
-    return { count: Number(row?.count ?? 0) };
-  }),
+  getUnreadCount: protectedProcedure
+    .input(z.any().optional()) // <-- FIXED: Absorbs the {} payload from the frontend safely
+    .query(async ({ ctx }) => {
+      const [row] = await ctx.db
+        .select({ value: count() }) // <-- FIXED: Using Drizzle's native, failsafe count()
+        .from(notifications)
+        .where(and(
+          eq(notifications.recipientId, ctx.session.user.id),
+          eq(notifications.isRead, false),
+        ));
+      return { count: row?.value ?? 0 };
+    }),
 
   // Mark one notification as read
   markRead: protectedProcedure

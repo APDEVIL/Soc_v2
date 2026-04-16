@@ -14,9 +14,9 @@ import { env } from "@/env";
 // Pusher server instance (singleton)
 const pusher = new Pusher({
   appId: env.PUSHER_APP_ID,
-  key: env.PUSHER_KEY,
+  key: env.NEXT_PUBLIC_PUSHER_KEY,
   secret: env.PUSHER_SECRET,
-  cluster: env.PUSHER_CLUSTER,
+  cluster: env.NEXT_PUBLIC_PUSHER_CLUSTER,
   useTLS: true,
 });
 

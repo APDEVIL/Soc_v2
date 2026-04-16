@@ -3,8 +3,7 @@ import { z } from "zod";
 
 export const env = createEnv({
     /**
-     * Specify your server-side environment variables schema here. This way you can ensure the app
-     * isn't built with invalid env vars.
+     * Specify your server-side environment variables schema here.
      */
     server: {
         BETTER_AUTH_SECRET:
@@ -19,25 +18,23 @@ export const env = createEnv({
             .enum(["development", "test", "production"])
             .default("development"),
         
-        // Pusher
+        // Pusher (Server Only)
         PUSHER_APP_ID: z.string(),
-        PUSHER_KEY: z.string(),
         PUSHER_SECRET: z.string(),
-        PUSHER_CLUSTER: z.string(),
 
         // UploadThing
         UPLOADTHING_SECRET: z.string(),
         UPLOADTHING_APP_ID: z.string(),
-        UPLOADTHING_TOKEN: z.string(), // Added
+        UPLOADTHING_TOKEN: z.string(),
     },
 
     /**
-     * Specify your client-side environment variables schema here. This way you can ensure the app
-     * isn't built with invalid env vars. To expose them to the client, prefix them with
-     * `NEXT_PUBLIC_`.
+     * Specify your client-side environment variables schema here.
      */
     client: {
-        // NEXT_PUBLIC_CLIENTVAR: z.string(),
+        // Pusher (Exposed to the browser)
+        NEXT_PUBLIC_PUSHER_KEY: z.string(),
+        NEXT_PUBLIC_PUSHER_CLUSTER: z.string(),
     },
 
     /**
@@ -54,23 +51,16 @@ export const env = createEnv({
         
         // Pusher
         PUSHER_APP_ID: process.env.PUSHER_APP_ID,
-        PUSHER_KEY: process.env.PUSHER_KEY,
+        NEXT_PUBLIC_PUSHER_KEY: process.env.NEXT_PUBLIC_PUSHER_KEY,
         PUSHER_SECRET: process.env.PUSHER_SECRET,
-        PUSHER_CLUSTER: process.env.PUSHER_CLUSTER,
+        NEXT_PUBLIC_PUSHER_CLUSTER: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
 
         // UploadThing
         UPLOADTHING_SECRET: process.env.UPLOADTHING_SECRET,
         UPLOADTHING_APP_ID: process.env.UPLOADTHING_APP_ID,
-        UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN, // Added
+        UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
     },
-    /**
-     * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
-     * useful for Docker builds.
-     */
+    
     skipValidation: !!process.env.SKIP_ENV_VALIDATION,
-    /**
-     * Makes it so that empty strings are treated as undefined. `SOME_VAR: z.string()` and
-     * `SOME_VAR=''` will throw an error.
-     */
     emptyStringAsUndefined: true,
 });

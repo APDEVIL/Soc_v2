@@ -143,7 +143,8 @@ export function ReelPlayer({
   };
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-black">
+    // FIXED: Added max-w-[420px], mx-auto, and sm:rounded-2xl to constrain the width to a 9:16 vertical ratio on desktop
+    <div className="relative mx-auto h-full w-full max-w-[420px] overflow-hidden bg-black sm:rounded-2xl sm:border sm:border-border">
       {/* Video */}
       <video
         ref={videoRef}
@@ -280,7 +281,8 @@ export function ReelPlayer({
 
 export function ReelPlayerSkeleton() {
   return (
-    <div className="relative h-full w-full overflow-hidden bg-black">
+    // FIXED: Added same max-w constraint to the skeleton
+    <div className="relative mx-auto h-full w-full max-w-[420px] overflow-hidden bg-black sm:rounded-2xl sm:border sm:border-border">
       {/* Video placeholder */}
       <div className="h-full w-full animate-pulse bg-neutral-900" />
 
